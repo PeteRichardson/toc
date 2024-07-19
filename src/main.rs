@@ -5,19 +5,20 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
+// A table of contents entry is a tuple of line offset and the line itself
 type TocEntry = (usize, String);
 
 fn extract_toc_entries(lines: Vec<String>, re: Regex) -> Vec<TocEntry> {
     // Search for a regex pattern in a vector of strings
     // return a list of table of contents entries
     info!("searching for '{}'", re);
-    let mut matches: Vec<TocEntry> = Vec::new();
-    for (i, line) in lines.iter().enumerate() {
+    let mut toc_entries: Vec<TocEntry> = Vec::new();
+    for (offset, line) in lines.iter().enumerate() {
         if re.is_match(line) {
-            matches.push((i, line.clone()));
+            toc_entries.push((offset, line.clone()));
         }
     }
-    matches
+    toc_entries
 }
 
 fn load_lines(path: &PathBuf) -> Result<Vec<String>, std::io::Error> {
