@@ -1,28 +1,11 @@
+mod toc;
+use crate::toc::TocEntry;
 use log::info;
 use regex::Regex;
 use std::error::Error;
-use std::fmt;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-
-// A table of contents entry is a tuple of line offset and the line itself
-struct TocEntry {
-    offset: usize,
-    line: String,
-}
-
-impl TocEntry {
-    fn new(offset: usize, line: String) -> TocEntry {
-        TocEntry { offset, line }
-    }
-}
-
-impl fmt::Display for TocEntry {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "line offset {:3?} - {}", self.offset, self.line)
-    }
-}
 
 fn extract_toc_entries(lines: Vec<String>, re: Regex) -> Vec<TocEntry> {
     // Search for a regex pattern in a vector of strings
