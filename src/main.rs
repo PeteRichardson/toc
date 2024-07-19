@@ -1,11 +1,18 @@
 mod toc;
 use crate::toc::TocEntry;
+use clap::Parser;
 use log::info;
 use regex::Regex;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
+
+#[derive(Parser, Debug)]
+struct Args {
+    /// file to extract toc from
+    input_file: PathBuf,
+}
 
 fn extract_toc_entries(lines: Vec<String>, re: Regex) -> Vec<TocEntry> {
     // Search for a regex pattern in a vector of strings
@@ -30,10 +37,9 @@ fn load_lines(path: &PathBuf) -> Result<Vec<String>, std::io::Error> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
-    // Load a file, search for a regex pattern, generate a list of
-    // table of contents entries and print them
-    let filepath = PathBuf::from("dlog0.log"); // TODO: fix hard-coded path
+    let args = Args::parse();
 
+    let filepath = args.input_file;
     let pattern = Regex::new(r"^[\+]+ (Section [\d\.]+)")?;
     let lines = load_lines(&filepath)?;
     let toc_entries: Vec<TocEntry> = extract_toc_entries(lines, pattern);
