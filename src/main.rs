@@ -1,31 +1,44 @@
-//use toc::parse_log;
-use std::path::PathBuf;
-use std::error::Error;
-use std::io::{BufReader, BufRead};
-use std::fs::File;
 use log::info;
 use regex::Regex;
+use std::error::Error;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 
-fn find_lines(path: &PathBuf, re: Regex) -> Result<Vec<String>, std::io::Error> {
-    info!("searching '{:?}' for '{}'", path, re);
+type TocEntry = (usize, String);
+
+fn extract_toc_entries(lines: Vec<String>, re: Regex) -> Vec<TocEntry> {
+    // Search for a regex pattern in a vector of strings
+    // return a list of table of contents entries
+    info!("searching for '{}'", re);
+    let mut matches: Vec<TocEntry> = Vec::new();
+    for (i, line) in lines.iter().enumerate() {
+        if re.is_match(line) {
+            matches.push((i, line.clone()));
+        }
+    }
+    matches
+}
+
+fn load_lines(path: &PathBuf) -> Result<Vec<String>, std::io::Error> {
+    // Load lines from a file into a vector of strings
     let file = BufReader::new(File::open(path)?);
-    let matches : Vec<String> = file.lines()
-        .map(|i| i.unwrap())
-        .filter(|l| re.is_match(l))
-        .collect();
-    Ok(matches)
+    let lines: Vec<String> = file.lines().map(|i| i.unwrap()).collect();
+    Ok(lines)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-
     env_logger::init();
+    // Load a file, search for a regex pattern, generate a list of
+    // table of contents entries and print them
+    let filepath = PathBuf::from("dlog0.log"); // TODO: fix hard-coded path
 
-    const FILENAME: &str = "dlog0.log";
-    let filepath = PathBuf::from(FILENAME);
     let pattern = Regex::new(r"^[\+]+ (Section [\d\.]+)")?;
-    let lines: Vec<String> = find_lines(&filepath, pattern)?;
-    for line in lines {
-        println!("{}", line);
+    let lines = load_lines(&filepath)?;
+    let toc_entries: Vec<TocEntry> = extract_toc_entries(lines, pattern);
+
+    for entry in toc_entries {
+        println!("line offset {:3?} - {}", entry.0, entry.1);
     }
     Ok(())
 }
